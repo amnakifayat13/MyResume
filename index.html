@@ -4,9 +4,11 @@
         <title>Resume</title>
         <link rel="stylesheet" type="text/css" href="style.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     </head>
     <body>
-        <div class=" container">
+        <div id="resume" class=" container">
         <div class="left_side"> 
         <div class="profileText">
             <div class="imgBx">
@@ -169,12 +171,13 @@
             </div>
 
             
-            
+            <button id="downloadResume">Download as PDF</button>  
                    
 
         </div>
             
         </div>
+         
 
         <script>
             const toggleButton = document.getElementById('toggleSkills');
@@ -189,7 +192,59 @@
                 toggleButton.textContent = 'Show Skills';
               }
             });
-          </script>
+        </script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const { jsPDF } = window.jspdf;
+    
+                // Function to generate the PDF
+                function generatePDF(callback) {
+                    const resumeElement = document.getElementById('resume');
+    
+                    // Capture the resume element as a canvas
+                    html2canvas(resumeElement).then(function(canvas) {
+                        const imgData = canvas.toDataURL('image/png');
+    
+                        // Create a PDF document
+                        const pdf = new jsPDF('p', 'mm', 'a4');
+    
+                        // Add the image to the PDF (coordinates and dimensions can be adjusted)
+                        pdf.addImage(imgData, 'PNG', 0, 0, 210, 297); // Full page A4 size (210mm by 297mm)
+    
+                        // Return the PDF object if a callback is provided (for sharing)
+                        if (callback) {
+                            callback(pdf);
+                        } else {
+                            // Save the generated PDF
+                            pdf.save('resume.pdf');
+                        }
+                    });
+                }
+    
+                // Download PDF
+                document.getElementById('downloadResume').addEventListener('click', function() {
+                    generatePDF(); // No callback for download
+                });
+    
+                // Share PDF via Email
+                document.getElementById('share').addEventListener('click', function() {
+                    generatePDF(function(pdf) {
+                        const pdfBlob = pdf.output('blob');
+                        
+                        // Create a link for the blob
+                        const fileURL = URL.createObjectURL(pdfBlob);
+    
+                        // Mailto with attachment link (user will need to download from the link)
+                        const subject = "Sharing My Resume";
+                        const body = `Hi,\n\nPlease find my resume attached.\n\nYou can download it from the following link: ${fileURL}\n\nRegards, Amna Aftab`;
+    
+                        // Open mail client
+                        window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                    });
+                });
+            });
+        </script>
         
         
     </body>
